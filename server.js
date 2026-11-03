@@ -19,7 +19,7 @@ app.post('/api/chat', async (req, res) => {
   const { messages, model, systemPrompt } = req.body;
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
-  if (!apiKey) {
+  if (!apiKey || apiKey.startsWith('your_') || !apiKey.startsWith('sk-ant-')) {
     return res.status(500).json({ error: "API Key not configured on backend." });
   }
 
@@ -43,7 +43,14 @@ app.post('/api/chat', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('API Error:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to communicate with AI provider' });
+    const providerMessage = error.response?.data?.error?.message;
+    if (error.response?.status === 401 || providerMessage?.includes('api-key')) {
+      return res.status(500).json({ error: 'The Anthropic API key is invalid or expired. Update ANTHROPIC_API_KEY in .env and restart the server.' });
+    }
+    if (error.response?.status === 429) {
+      return res.status(500).json({ error: 'The Anthropic API quota has been exceeded or rate-limited.' });
+    }
+    res.status(500).json({ error: providerMessage || 'Failed to communicate with the AI provider.' });
   }
 });
 

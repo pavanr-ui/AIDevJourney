@@ -47,7 +47,10 @@ const sendMessage = async () => {
     const aiMessage = { role: 'assistant', content: data.content[0].text };
     actions.sendMessage(state.activeChatId, aiMessage);
   } catch (error) {
-    actions.sendMessage(state.activeChatId, { role: 'assistant', content: "Sorry, I encountered an error. Please check if the backend server is running." });
+    actions.sendMessage(state.activeChatId, {
+      role: 'assistant',
+      content: error instanceof Error ? error.message : "Sorry, I encountered an error. Please check if the backend server is running."
+    });
   } finally {
     isLoading.value = false;
     nextTick(() => { scrollToBottom(); });
