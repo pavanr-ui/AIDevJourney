@@ -1,5 +1,9 @@
-import { createApp } from 'vue'
+import { createApp, h } from 'vue'
+import { RouterView } from 'vue-router'
 import './style.css'
-import App from './App.vue'
+import router from './router'
+import { authReady } from './auth'
 
-createApp(App).mount('#app')
+authReady.then(() => {
+  createApp({ render: () => h(RouterView) }).use(router).mount('#app')
+})

@@ -18,17 +18,22 @@ import {
   RotateCcw,
   Sparkles,
   Clock,
-  MessageSquare
+  MessageSquare,
+  LogOut
 } from 'lucide-vue-next';
 
 const props = defineProps({
   currentTab: {
     type: String,
     required: true
+  },
+  user: {
+    type: Object,
+    default: null
   }
 });
 
-const emit = defineEmits(['navigate', 'open-continue', 'open-reset']);
+const emit = defineEmits(['navigate', 'open-continue', 'open-reset', 'logout']);
 
 const isMobileMenuOpen = ref(false);
 
@@ -109,6 +114,32 @@ const handleNav = (tabId) => {
     </div>
 
     <!-- Footer Settings & Theme -->
+    <div v-if="user" class="px-3 pb-2">
+      <div class="rounded-xl border border-gray-200 dark:border-gray-800 p-2.5 flex items-center gap-2.5">
+        <img
+          v-if="user.photoURL"
+          :src="user.photoURL"
+          :alt="user.displayName || 'Google profile'"
+          referrerpolicy="no-referrer"
+          class="w-9 h-9 rounded-full object-cover"
+        />
+        <div v-else class="w-9 h-9 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 flex items-center justify-center text-sm font-bold">
+          {{ (user.displayName || user.email || 'U').charAt(0).toUpperCase() }}
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-semibold text-gray-900 dark:text-white truncate">{{ user.displayName || 'Google User' }}</p>
+          <p class="text-[11px] text-gray-500 dark:text-gray-400 truncate">{{ user.email }}</p>
+        </div>
+        <button
+          @click="emit('logout')"
+          class="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+          title="Sign out"
+        >
+          <LogOut class="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+
     <div class="p-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between gap-2">
       <button
         @click="actions.toggleTheme"
@@ -202,6 +233,27 @@ const handleNav = (tabId) => {
           <Sparkles class="w-4 h-4" />
           <span>Continue Day {{ actions.getNextIncompleteDay() }}</span>
         </button>
+
+        <div v-if="user" class="rounded-xl border border-gray-200 dark:border-gray-800 p-3 flex items-center gap-3">
+          <img
+            v-if="user.photoURL"
+            :src="user.photoURL"
+            :alt="user.displayName || 'Google profile'"
+            referrerpolicy="no-referrer"
+            class="w-10 h-10 rounded-full object-cover"
+          />
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold truncate">{{ user.displayName || 'Google User' }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email }}</p>
+          </div>
+          <button
+            @click="emit('logout'); isMobileMenuOpen = false;"
+            class="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+            title="Sign out"
+          >
+            <LogOut class="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
   </div>

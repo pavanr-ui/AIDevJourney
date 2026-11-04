@@ -1,6 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { state, actions, stats } from './store';
+import { authState, logout } from './auth';
 
 import Navbar from './components/Navbar.vue';
 import DashboardOverview from './components/DashboardOverview.vue';
@@ -19,6 +21,37 @@ const currentTab = ref('dashboard');
 const activeDayModal = ref(null);
 const activeTutorialModal = ref(null);
 const showResetModal = ref(false);
+const route = useRoute();
+const router = useRouter();
+
+const tabFromPath = {
+  '/dashboard': 'dashboard',
+  '/roadmap': 'roadmap',
+  '/tutorials': 'tutorials',
+  '/chat': 'chat',
+  '/notes': 'notes',
+  '/projects': 'projects',
+  '/resources': 'resources',
+  '/calendar': 'calendar'
+};
+
+watch(
+  () => route.path,
+  (path) => {
+    currentTab.value = tabFromPath[path] || 'dashboard';
+  },
+  { immediate: true }
+);
+
+const navigate = async (tab) => {
+  currentTab.value = tab;
+  await router.push(tab === 'dashboard' ? '/dashboard' : `/${tab}`);
+};
+
+const handleLogout = async () => {
+  await logout();
+  await router.replace('/login');
+};
 
 onMounted(() => {
   if (state.isDarkMode) {
@@ -47,9 +80,11 @@ const handleResetConfirm = () => {
     <!-- Sidebar Navigation -->
     <Navbar
       :currentTab="currentTab"
-      @navigate="(tab) => currentTab = tab"
+      :user="authState.user"
+      @navigate="navigate"
       @open-continue="openDayModal(actions.getNextIncompleteDay())"
       @open-reset="showResetModal = true"
+      @logout="handleLogout"
     />
 
     <!-- Main Content Area -->
