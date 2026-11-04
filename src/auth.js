@@ -10,6 +10,8 @@ import {
 } from 'firebase/auth';
 import { reactive } from 'vue';
 
+export const authEnabled = false;
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -37,7 +39,7 @@ export const authState = reactive({
 
 let auth = null;
 
-if (!firebaseConfigError.length) {
+if (authEnabled && !firebaseConfigError.length) {
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   auth = getAuth(app);
   setPersistence(auth, browserLocalPersistence).catch((error) => {
@@ -47,6 +49,11 @@ if (!firebaseConfigError.length) {
 }
 
 export const authReady = new Promise((resolve) => {
+  if (!authEnabled) {
+    authState.initialized = true;
+    resolve(null);
+    return;
+  }
   if (!auth) {
     authState.initialized = true;
     resolve(null);

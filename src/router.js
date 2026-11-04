@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import App from './App.vue';
 import LoginView from './views/LoginView.vue';
 import AccessDeniedView from './views/AccessDeniedView.vue';
-import { authReady, authState, isAuthorizedUser } from './auth';
+import { authEnabled, authReady, authState, isAuthorizedUser } from './auth';
 
 const protectedPaths = [
   '/dashboard',
@@ -32,6 +32,14 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   await authReady;
+
+  if (!authEnabled) {
+    if (to.name === 'login' || to.name === 'access-denied') {
+      return '/dashboard';
+    }
+    return true;
+  }
+
   const user = authState.user;
 
   if (to.meta.requiresAuth) {
